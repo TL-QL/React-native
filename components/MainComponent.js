@@ -2,7 +2,6 @@ import 'react-native-gesture-handler';
 import React, {Component} from 'react';
 import { View, Platform, Image, StyleSheet, SafeAreaView, ScrollView, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-//import { createDrawerNavigator, DrawerItems } from '@react-navigation/drawer';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
 import Home from './HomeComponent';
 import Menu from './MenuComponent';
@@ -11,6 +10,20 @@ import About from './AboutComponent';
 import Contact from './ContactComponent';
 import ExpoStatusBar from 'expo-status-bar/build/ExpoStatusBar';
 import { Icon } from 'react-native-elements';
+import { connect } from 'react-redux';
+import { fetchDishes, fetchComments, fetchPromos, fetchLeaders } from '../redux/ActionCreators';
+
+const mapStateToProps = state => {
+    return {
+    }
+}
+
+const mapDispatchToProps = dispatch => ({
+    fetchDishes: () => dispatch(fetchDishes()),
+    fetchComments: () => dispatch(fetchComments()),
+    fetchPromos: () => dispatch(fetchPromos()),
+    fetchLeaders: () => dispatch(fetchLeaders()),
+});
 
 const MenuNavigator = createStackNavigator();
 const HomeNavigator = createStackNavigator();
@@ -129,6 +142,13 @@ function ContactScreen({ navigation }) {
 
 class Main extends Component{
 
+    componentDidMount(){
+        this.props.fetchDishes();
+        this.props.fetchComments();
+        this.props.fetchPromos();
+        this.props.fetchLeaders();
+    }
+
     render(){
         return(
             <View style={{ flex: 1, paddingTop: Platform.OS === 'ios'? 0:ExpoStatusBar.Constants.statusBarHeight}}>
@@ -166,4 +186,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default Main;
+export default connect(mapStateToProps, mapDispatchToProps)(Main);
