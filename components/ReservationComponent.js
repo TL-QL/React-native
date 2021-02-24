@@ -4,6 +4,9 @@ import {Picker} from '@react-native-picker/picker';
 import {Card} from 'react-native-elements';
 import DatePicker from 'react-native-datepicker';
 import * as Animatable from 'react-native-animatable';
+//import { Permissions, Notifications } from 'expo';
+import * as Permissions from 'expo-permissions';
+import * as Notifications from 'expo-notifications';
 
 class Reservation extends Component {
 
@@ -33,7 +36,15 @@ class Reservation extends Component {
             'Number of Guests: ' + this.state.guests + '\nSmoking? '+ this.state.smoking +'\nDate and Time:' + this.state.date,
             [
             {text: 'Cancel', onPress: () => { console.log('Cancel Pressed'); this.resetForm();}, style: 'cancel'},
-            {text: 'OK', onPress: () => { this.resetForm(); }},
+            {text: 'OK', onPress: async () => {
+                await this.presentLocalNotification(this.state.date);
+                this.resetForm(); 
+              }}
+            
+            // onPress: () => { 
+            //         this.presentLocalNotification(this.state.date);
+            //         this.resetForm(); 
+            //     }},
             ],
             { cancelable: false }
         );
@@ -48,6 +59,37 @@ class Reservation extends Component {
             date: ''
         });
     }
+
+    async obtainNotificationPermission() {
+        let permission = await Permissions.getAsync(Permissions.USER_FACING_NOTIFICATIONS);
+        if (permission.status !== 'granted') {
+            permission = await Permissions.askAsync(Permissions.USER_FACING_NOTIFICATIONS);
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission not granted to show notifications');
+            }
+        }
+        //Notifications.addListener(this.presentLocalNotification());
+        return permission;
+    }
+
+  async presentLocalNotification(date) {
+      await this.obtainNotificationPermission();
+      Notifications.presentLocalNotificationAsync({
+          title: 'Your Reservation',
+          body: 'Reservation for '+ date + ' requested',
+          ios: {
+            allowsSound: true,
+            allowsBadge: true,
+            allowsAlert: true
+          },
+          android: {
+              sound: true,
+              vibrate: true,
+              color: '#512DA8'
+          }
+      });
+      console.log('presentLocalNotification');
+  }
 
     render(){
         return(
