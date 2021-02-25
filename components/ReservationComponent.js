@@ -6,7 +6,9 @@ import DatePicker from 'react-native-datepicker';
 import * as Animatable from 'react-native-animatable';
 //import { Permissions, Notifications } from 'expo';
 import * as Permissions from 'expo-permissions';
-import * as Notifications from 'expo-notifications';
+//import * as Notifications from 'expo-notifications';
+//import { Notifications } from 'expo';
+import * as Notifications from 'expo-notifications'
 
 class Reservation extends Component {
 
@@ -73,21 +75,29 @@ class Reservation extends Component {
     }
 
   async presentLocalNotification(date) {
-      await this.obtainNotificationPermission();
-      Notifications.presentLocalNotificationAsync({
-          title: 'Your Reservation',
-          body: 'Reservation for '+ date + ' requested',
-          ios: {
-            allowsSound: true,
-            allowsBadge: true,
-            allowsAlert: true
-          },
-          android: {
-              sound: true,
-              vibrate: true,
-              color: '#512DA8'
-          }
-      });
+    await this.obtainNotificationPermission()
+    .then(() => {
+        Alert.alert('Obtained Notification Permission!')
+    })
+    .catch(error => {
+            Alert.alert('Obtain Notification Permission Error!');
+    });
+    await Notifications.presentLocalNotificationAsync({
+        title: 'Your Reservation',
+        body: 'Reservation for '+ date + ' requested',
+        ios: {
+            sound: true
+        },
+        android: {
+            color: '#512DA8'
+        }
+    })
+    .then(() => {
+        Alert.alert('Notification Sent!')
+        })
+    .catch(error => {
+            Alert.alert('Notification sent Error!');
+    });
       console.log('presentLocalNotification');
   }
 
