@@ -9,6 +9,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { baseUrl } from '../shared/baseUrl';
 import * as MediaLibrary from 'expo-media-library';
+import { Asset } from 'expo-asset';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 class LoginTab extends Component {
 
@@ -153,9 +155,21 @@ class RegisterTab extends Component{
             });
 
             if(!capturedImage.cancelled){
-                this.setState({ imageUrl: capturedImage.uri })
+                this.processImage(capturedImage.uri);
+                //this.setState({ imageUrl: capturedImage.uri })
             }
         }
+    }
+
+    processImage = async (imageUri) => {
+        let processedImage = await ImageManipulator.manipulateAsync(
+            imageUri,
+            [
+                { resize: { width: 400 } }
+            ],
+            { format: 'png' }
+        );
+        this.setState({ imageUrl: processedImage.uri });
     }
 
     render() {
