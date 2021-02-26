@@ -94,9 +94,9 @@ class Reservation extends Component {
     })
     .then(() => {
         Alert.alert('Notification Sent!')
-        })
+    })
     .catch(error => {
-            Alert.alert('Notification sent Error!');
+        Alert.alert('Notification sent Error!');
     });
       console.log('presentLocalNotification');
   }
