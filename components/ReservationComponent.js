@@ -30,28 +30,51 @@ class Reservation extends Component {
         this.setState({showModal: !this.state.showModal});
     }
 
-    handleReservation(){
-        console.log(JSON.stringify(this.state));
+    // handleReservation(){
+    //     console.log(JSON.stringify(this.state));
 
+    //     Alert.alert(
+    //         'Your Reservation OK?',
+    //         'Number of Guests: ' + this.state.guests + '\nSmoking? '+ this.state.smoking +'\nDate and Time:' + this.state.date,
+    //         [
+    //         {text: 'Cancel', onPress: () => { console.log('Cancel Pressed'); this.resetForm();}, style: 'cancel'},
+    //         {text: 'OK', onPress: async () => {
+    //             await this.presentLocalNotification(this.state.date);
+    //             this.resetForm(); 
+    //           }}
+            
+    //         // onPress: () => { 
+    //         //         this.presentLocalNotification(this.state.date);
+    //         //         this.resetForm(); 
+    //         //     }},
+    //         ],
+    //         { cancelable: false }
+    //     );
+
+    //     this.toggleModal();
+    // }
+
+    handleReservation = () => {
+        console.log(JSON.stringify(this.state))
         Alert.alert(
             'Your Reservation OK?',
-            'Number of Guests: ' + this.state.guests + '\nSmoking? '+ this.state.smoking +'\nDate and Time:' + this.state.date,
+            'Number of Guests: ' + this.state.guests + '\nSmoking? ' + ( this.state.smoking ? 'YES' : 'NO' ) + '\nDate and Time: ' + this.state.date,
             [
-            {text: 'Cancel', onPress: () => { console.log('Cancel Pressed'); this.resetForm();}, style: 'cancel'},
-            {text: 'OK', onPress: async () => {
-                await this.presentLocalNotification(this.state.date);
-                this.resetForm(); 
-              }}
-            
-            // onPress: () => { 
-            //         this.presentLocalNotification(this.state.date);
-            //         this.resetForm(); 
-            //     }},
+                {
+                    text: 'Cancel',
+                    onPress: () => this.resetForm(),
+                    style: 'cancel' },
+                {
+                    text: 'OK',
+                    onPress: () => {
+                        this.presentLocalNotification( this.state.date )
+                        this.handleReservationToCalendar( this.state.date )
+                        this.resetForm()
+                    }
+                },
             ],
             { cancelable: false }
         );
-
-        this.toggleModal();
     }
 
     resetForm(){
@@ -72,6 +95,54 @@ class Reservation extends Component {
         }
         //Notifications.addListener(this.presentLocalNotification());
         return permission;
+    }
+
+    obtainCalenderPermission = async () => {
+        let permission = await Permissions.getAsync(Permissions.CALENDAR)
+
+        if ( permission.status !== 'granted' ){
+            permission = await Permissions.askAsync(Permissions.CALENDAR)
+            if ( permission.status !== 'granted' ){
+                Alert.alert("Permission not granted")
+            }
+        }
+        return permission
+    }
+
+    getDefaultCalendarSource = async () => {
+        const calendars = await Calendar.getCalendarsAsync()
+        const defaultCalendars = calendars.filter(each => each.source.name === 'Default')
+        return defaultCalendars[0].source
+    }
+    handleReservationToCalendar = async ( date ) => {
+        await this.obtainCalenderPermission()
+
+        const defaultCalendarSource = Platform.OS === 'ios' ?
+            await getDefaultCalendarSource()
+            : { isLocalAccount: true, name: 'Expo Calendar' };
+
+        const tempDate = Date.parse(date)
+        const startDate = new Date(tempDate)
+        const endDate = new Date(tempDate + 2 * 60 * 60 * 1000)
+
+        const calendarID = await Calendar.createCalendarAsync({
+            title: 'Expo Calendar',
+            color: 'blue',
+            entityType: Calendar.EntityTypes.EVENT,
+            sourceId: defaultCalendarSource.id,
+            source: defaultCalendarSource,
+            name: 'internalCalendarName',
+            ownerAccount: 'personal',
+            accessLevel: Calendar.CalendarAccessLevel.OWNER,
+        })
+
+        await Calendar.createEventAsync(calendarID, {
+            title: 'Con Fusion Table Reservation',
+            startDate: startDate,
+            endDate: endDate,
+            timeZone: 'Asia/Hong_Kong',
+            location: '121, Clear Water Bay Road, Clear Water Bay, Kowloon, Hong Kong'
+        })
     }
 
   async presentLocalNotification(date) {
